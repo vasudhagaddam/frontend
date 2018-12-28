@@ -1,0 +1,40 @@
+<html>
+    <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <title></title>
+        </head>
+    <body >
+        <form>
+            <div class="row">
+                <div class="col-sm-2">
+    
+                </div>
+              <div class="col-sm-6">
+                        <pre>
+                  <h1 style="color:red;text-align: center;"><strong>Registration</strong></h1>
+                  <input type="hidden" id="id" />
+                  <label>Name:<input type="text" id="name" name="name" class="form-control" placeholder="enter a name"></label>
+                  <label>Age:<input type="number" id="age" name="age" class="form-control"></label>  
+                  <label>Gender:<input type="radio" id="male" name="gender" value="Male" /> Male &nbsp; <input name="gender" type="radio" id="female" value="Female" /> Female</label>
+                  <label>Qualification: <select id="qualification">
+                    <option value="MCA">MCA</option>
+                    <option value="MBA">MBA</option>
+                    <option value="BTech">BTech</option>
+                </select></label>
+                  
+                  <label>Address<textarea id="address" class="form-control"></textarea></label>
+                  <input type="button" id="regbtn" onclick="addStudent(event)" class="btn btn-success" value="Register">&nbsp;&nbsp;<input class="btn btn-Primary" type="reset" value="Reset">
+                  <input type="button" id="update" style="display: none;" onclick="addStudent(event)" class="btn btn-info" value="Update">
+                </pre>
+                </div>
+            
+                <div class="col-sm-2">
+                 <br>
+                </div>
+    
+            </div>
+        </form>
+    </body>
+</html>>
