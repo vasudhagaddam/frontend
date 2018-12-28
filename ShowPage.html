@@ -1,0 +1,342 @@
+<html>
+    <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <title></title>
+        
+        <script>
+            let students = [];
+            let subjects=[];
+            let marks=[];
+            function performAjax(httpMethod, url, params) {
+                const myPromise = new Promise((resolve, reject) => {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            resolve(this.responseText);
+                        }
+                        if (this.status == 500) {
+                            reject({ error: true, message: "ServerError"});
+                        } 
+                        if (this.status == 404) {
+                            reject({ error: true, message: "Resource not found"});
+                        }
+                    };
+                    xhttp.open(httpMethod, url, true);
+                    xhttp.setRequestHeader("Content-Type", "application/json");
+                    params ? xhttp.send(params): xhttp.send();
+                });
+                return myPromise;
+            }
+            function loadData() {
+                //const students = ''    //get students from server
+                const getStudentsPromise = performAjax("GET", "http://localhost:3000/students");
+                getStudentsPromise
+                .then((studentsList) => {
+                    loadStudents(studentsList);
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+            }
+
+           
+
+
+            function addregistration()
+               {
+                const getStudentsPromise = performAjax("GET", "http://localhost:4000/addr");
+                getStudentsPromise
+                .then((studentsList) => {
+                    console.log(studentsList);
+                    document.getElementById("ss").innerHTML=studentsList;
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+               }
+
+            function btnSubjects()
+            {
+                const getStudentsPromise = performAjax("GET", "http://localhost:4000/adds");
+                getStudentsPromise
+                .then((studentsList) => {
+                    console.log(studentsList);
+                    document.getElementById("ss").innerHTML=studentsList;
+                })
+                .catch(err => {
+                    alert(err.message);
+                })  
+            }
+
+            function editStudent(event) {
+                let editRecord;
+                students.map(student => {
+                    if (student._id === event.target.id) {
+                        editRecord = student;
+                    }
+                });
+                if (editRecord !== undefined) {
+                    document.getElementById("id").value = editRecord._id;
+                    document.getElementById("name").value = editRecord.name;
+                    document.getElementById("age").value = editRecord.age;
+                    editRecord.gender === 'Male' ? document.getElementById("male").checked = true : document.getElementById("female").checked = true;
+                    document.getElementById("qualification").value = editRecord.qualification;
+                    document.getElementById("address").value = editRecord.address;
+                    document.getElementById("regbtn").style.display = 'none';
+                    document.getElementById("update").style.display = 'inline';
+                } else {
+                    alert("Student not found");
+                }
+            }
+
+
+            function deleteStudent(event) {
+                const deletePromise = performAjax('DELETE', `http://localhost:3000/students/${event.target.id}`);
+                deletePromise
+                .then((remainingStudents) => {
+                    loadStudents(remainingStudents);
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+            }
+            function loadStudents(records) {
+                students = JSON.parse(records);
+                //preparing table header
+                const tableHeader = `<tr><th>Sno</th><th>Name</th><th>Gender</th><th>Qualification</th><th>Age</th><th>Address</th><th>Actions</th></tr>`;
+                //preparing table rows
+                let tableRows = students.map((student, index) => {
+                    return `<tr><td>${index + 1}</td><td>${student.name}</td><td>${student.gender}</td><td>${student.qualification}</td><td>${student.age}</td><td>${student.address}</td><td><button class="btn btn-success" onclick='editStudent(event)' id='${student._id}'>Edit</button>&nbsp;&nbsp;<button class="btn btn-danger" id='${student._id}' onclick='deleteStudent(event)'>Delete</button>&nbsp;&nbsp;</td></tr>`;
+                });
+                //"hello "+name+" how are you";
+                //`hello ${name} how are you`;
+                //writing to table
+                document.getElementById("student_table").innerHTML = `${tableHeader}${tableRows.join('')}`;
+            }
+            function filterRecords(event) {
+                const searchString = event.target.value;
+                const searchStudentsPromise = performAjax("GET", `http://localhost:3000/students/search?string=${searchString}`);
+                searchStudentsPromise
+                .then(filteredStudents => {
+                    loadStudents(filteredStudents);
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+            }
+            function addStudent(event) {
+                event.preventDefault();
+                const id = document.getElementById("id").value;
+                const name = document.getElementById("name").value;
+                const age = document.getElementById("age").value;
+                const gender = document.getElementById("male").checked ? "Male":"Female";
+                const qualification = document.getElementById("qualification").value;
+                const address = document.getElementById("address").value;
+                if(event.target.id === 'regbtn'){
+                    const addStudentPromise = performAjax(
+                        "POST", 
+                        "http://localhost:3000/students",
+                        JSON.stringify({ name, age, gender, qualification, address })
+                    );
+                    addStudentPromise
+                    .then(newStudentsList => {
+                        loadStudents(newStudentsList);
+                    })
+                    .catch(err => {
+                        alert(err.message);
+                    })
+                    
+                } else {
+                    const updateStudentPromise = performAjax(
+                        "PUT", 
+                        `http://localhost:3000/students/${id}`,
+                        JSON.stringify({ name, age, gender, qualification, address })
+                    );
+                    updateStudentPromise
+                    .then(updatedStudentsList => {
+                        loadStudents(updatedStudentsList);
+                    })
+                    .catch(err => {
+                        alert(err.message);
+                    })
+                }
+                //loadStudents(students);
+            }
+            function addSubjects(event)
+            {
+                event.preventDefault();
+                const subject = document.getElementById("subject").value;
+                console.log(subject);
+                if(event.target.id === 'addsub'){
+                    const addSubjectPromise= performAjax(
+                        "POST", 
+                        "http://localhost:3000/subjects",
+                        JSON.stringify({ subject})
+                    );
+                    
+                    }
+            }
+
+            function btnMarks(event)
+            {
+                
+                event.preventDefault();
+            document.getElementById("myModal").style.display = 'block';
+            document.getElementById("btnaddmarks").style.display = 'block';
+            document.getElementById("btnupdate").style.display = 'none';
+            document.getElementById("student").focus();
+            document.getElementById("student").disabled = false;
+
+            const getNamesPromise = performAjax("GET", "http://localhost:3000/students");            
+            getNamesPromise
+            .then((data) => {
+                console.log(data);
+                const jsonData = JSON.parse(data);
+                getStudentList(jsonData); 
+                           
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+
+            const getSubjectsPromise=performAjax("GET", "http://localhost:3000/subjects"); 
+            getSubjectsPromise
+            .then((datasub) => {
+                const jsonDataSub = JSON.parse(datasub);
+                getSubjectsList(jsonDataSub);             
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+               
+            }
+
+            function getStudentList(studentsData)
+            {
+                let sid = document.getElementById("student");
+                
+                for (let i = 0; i < studentsData.length; i++) {
+                    let option = document.createElement("OPTION");
+                    option.innerHTML = studentsData[i].name;
+                    option.value = studentsData[i]._id;
+                    sid.options.add(option);
+                    
+                }     
+            }
+
+              function getSubjectsList(subjectData)
+             {
+                let subname = document.getElementById("subject");
+            for (let j = 0; j< subjectData.length; j++) {
+                let suboption = document.createElement("OPTION");
+               suboption.innerHTML = subjectData[j].subject;
+                suboption.value = subjectData[j]._id;
+                subname.options.add(suboption);
+             }     
+            }
+
+           function createMarks(event)
+          {
+                event.preventDefault();
+               let  student=document.getElementById("student").value;
+                 let subject=document.getElementById("subject").value;
+               const mark = document.getElementById("mark").value;
+                
+                 if(event.target.id === 'btnaddmarks'){
+                   const addMarksPromise= performAjax(
+                       "POST", 
+                        "http://localhost:3000/marks",
+                        JSON.stringify({student,subject, mark})
+                    );
+                   
+                }
+          }
+        </script>
+
+    </head>
+    <body onload="loadData()">
+        <div class="row"><br></div>
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-3">
+          
+            <button class="btn btn-success" id="sub1btn" onclick="btnSubjects()">Add Subjects</button><br><br>
+            <button class="btn btn-success" id="reg1btn" onclick="addregistration()">Registration</button><br><br>
+            <button class="btn btn-success" id="show" onclick="showTable()">Show</button><br><br>
+            <button class="btn btn-info" id="addmarks" onclick='btnMarks(event)'>Marks</button>
+        </div>
+        <div class="col-sm-8" id="ss"><h1>hello</h1></div>
+        
+        
+    </div>
+    <div class="row" style="background-color: crimson;">
+            
+        <br>
+        <center>
+            <label>Search: </label>
+            <input type="text" placeholder="search" onkeyup="filterRecords(event)" />
+            <h1 style="color:forestgreen;"><b>Student Info</b></h1>
+            <table class="table table-dark table-striped" id="student_table" border="1"></table>
+            
+        </center>
+        <br>
+    </div>
+    
+            <div id="myModal" class="modal" align="center" width="50%">
+                    <div class="modal-content">
+                        <center>
+                            <h4>Add Subject Marks</h4>
+                        </center>
+                        <form>
+                            <table>
+                                <tr>
+                                    <td>Students_id:</td>
+                                    <td>
+                                        <select id="student">
+                                            <option value="---value--">--Select--</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td>Subjects:</td>
+                                    <td>
+                                            <select id="subject">
+                                                <option value="--Select--">--Select--</option>
+                                            </select>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>&nbsp;&nbsp;</td>
+                                </tr>
+                               
+                                <tr>
+                                    <td>Marks:</td>
+                                    <td><input type="number" id="mark"></td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>&nbsp;&nbsp;</td>
+                                   
+                                </tr>
+                                <tr>
+                                    <td align="right">
+                                        <button class="btn btn-success" id="btnaddmarks" onclick="createMarks(event)">Add Marks</button>
+                                        <button class="btn btn-success" id="btnupdate" onclick="createMarks(event)">Update Marks</button>
+                                    </td>
+                                    <td align="center">
+                                        <button class="btn btn-danger" id="btncancel" onclick="Cancel()">Cancel</button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>                
+                    </div>
+                </div>
+   
+    
+    </body>
+</html>
